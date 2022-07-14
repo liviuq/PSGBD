@@ -1,0 +1,47 @@
+Se citesc n si m, sa se afiseze studentii in ordine alfabetica dupa nume si prenume care sunt intre n si m ca ordine, iar pentru fiecare student afisat sa se afiseze si notele acestuia.
+
+set serveroutput on;
+DECLARE
+    --input pentru n si m
+   v_n integer := &i_n;
+   v_m integer := &i_m;
+   
+   --creare cursor
+   --vom face fetch de n ori, afisam studentii + note de m ori
+   cursor cursor1 is
+            select s.nume, s.prenume, s.id from studenti s
+            order by s.nume ASC, s.prenume ASC;
+    v_linie_cursor cursor1%ROWTYPE;
+    v_counter int := 1;
+    
+    --cursor pt notele fiecarui student din intervalul propus
+    --nu l-am mai folosit deoarece am folosit un cursor in FOR
+    cursor cursor2 is
+        select valoare from note where id_student = v_linie_cursor.id;
+BEGIN  
+    open cursor1;
+    while(v_counter <= v_n) loop
+        fetch cursor1 into v_linie_cursor;
+        EXIT WHEN cursor1%NOTFOUND;
+        v_counter := v_counter + 1;
+    end loop;
+    
+    --am sarit peste primii n studenti
+    --luam acum m studenti
+    v_counter := v_n;
+    while(v_counter <= v_m) loop
+        fetch cursor1 into v_linie_cursor;
+        EXIT WHEN cursor1%NOTFOUND;
+        dbms_output.put_line('Studentul ' ||v_linie_cursor.nume || ' ' || v_linie_cursor.prenume
+        || ' are notele: ');
+        
+        --luam fiecare linie din selectul de mai jos si afisam valorile
+        for v_linie in (select valoare from note where id_student = v_linie_cursor.id) loop
+            dbms_output.put_line('nota ' || v_linie.valoare);
+        end loop;
+        v_counter := v_counter + 1;
+    end loop;
+    
+    --curatam dupa noi
+    close cursor1;
+END;

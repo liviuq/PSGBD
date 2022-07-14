@@ -1,0 +1,45 @@
+set serveroutput on;
+DECLARE
+    v_student_id1 studenti.id%type := &i_student_id1;
+    v_student_id2 studenti.id%type := &i_student_id2;
+    
+    v_nume_student_id1 studenti.nume%type;
+    v_prenume_student_id1 studenti.prenume%type;
+    
+    v_nume_student_id2 studenti.nume%type;
+    v_prenume_student_id2 studenti.prenume%type;
+    
+    v_nr_prieteni_id1 number;
+    v_nr_prieteni_id2 number;
+    
+    v_medie_student_id1 number;
+    v_medie_student_id2 number;
+BEGIN
+    --preluare nume, prenume
+    select nume, prenume into v_nume_student_id1, v_prenume_student_id1
+    from studenti where id = v_student_id1;
+    
+    select nume, prenume into v_nume_student_id2, v_prenume_student_id2
+    from studenti where id = v_student_id2;
+    
+    --preluare numar prieteni
+    select count(*) into v_nr_prieteni_id1 from prieteni p 
+    where p.id_student1 = v_student_id1;
+    
+    select count(*) into v_nr_prieteni_id2 from prieteni p 
+    where p.id_student2 = v_student_id2;
+    
+    --preluare media notelor
+    select avg(valoare) into v_medie_student_id1 from note n where n.id_student = v_student_id1;
+    
+    select avg(valoare) into v_medie_student_id2 from note n where n.id_student = v_student_id2;
+    
+    DBMS_OUTPUT.put_line(v_nume_student_id1 || ' ' || v_prenume_student_id1 ||
+                        ' are media ' || v_medie_student_id1 || ' si ' ||
+                        v_nr_prieteni_id1 || ' prieteni');
+    DBMS_OUTPUT.put_line(v_nume_student_id2 || ' ' || v_prenume_student_id2 ||
+                        ' are media ' || v_medie_student_id2 || ' si ' ||
+                        v_nr_prieteni_id2 || ' prieteni');
+    DBMS_OUTPUT.put_line('Diferenta mediilor este ' || abs(v_medie_student_id2 - v_medie_student_id1));
+    DBMS_OUTPUT.put_line('Diferenta prietenilor este ' || abs(v_nr_prieteni_id1 - v_nr_prieteni_id2));
+END;

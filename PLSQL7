@@ -1,0 +1,86 @@
+Intro
+	Salutare, eu sunt Liviu si astazi, impreuna cu Pavel Petronel, va vom prezenta conceptul de triggere.
+
+1. Ce sunt acelea triggere?
+	Un trigger sau declansator este un bloc de cod pe care 
+	Baza de date Oracle il executa automat oricand un eveniment specific
+	are loc. Poate nu veti intelege exact ce e acela un trigger, dar va va clara
+	in sectiunea in care codam un trigger. Pana acum, retineti faptul ca un trigger 
+	este o bucata de cod ce se executa la aparitia unui anumit eveniment, in cazul
+	nostru ar fi operatiile Data Manipulation Language(SELECT, INSERT, UPDATE, DELETE), Data Definition Language(create/alter/drop) sau a intregii baze de date(tip system). 
+
+2. De ce am dori sa folosim unul sau mai multe triggere?
+	Dupa cum avem si in laborator precizat, putem loga fiecare operatie asupra
+	tabelelor din baza noastra de date, putem auto-genera informatii in diferite
+	coloane sau putem restrictiona accesul la baza noastra de date(spre exemplu intre
+	orele 9-15).
+
+3. Cum codam un trigger de tip DML?
+	Triggerele DML sunt construite asupra operatiilor de tip insert, update sau delete.
+	Mai tineti minte printre primele slide uri ca am mentionat de
+	'anumite evenimente'? Acestea sunt acele evenimente.
+	Haideti sa vedem acum un exemplu.
+	1. [CREATE OR REPLACE] Inceputul e asemanator procedurilor, functiilor si
+		apachetelor, vom folosi CREATE or REPLACE trigger
+	2. [Trigger name] trebuie sa ii adresam un nume
+	3. [BEFORE | AFTER] aici specificam cand se executa triggerul raportat la 
+		comanda noastra DML. daca e un trigger before, atunci
+		mai intai se executa triggerul si abia apoi se executa
+		comanda DML, analog triggerelor after.
+	3'.[OF coloana_tabel] se executa cand coloana_tabel se modifica
+	4. [ON nume_tabel] trebuie sa il botezam
+	5. [Optional FOR EACH ROW] specificam faptul ca triggerul e
+		de tip 'row-trigger', adica se execcuta pentru fiecare
+		rand inserat/modificat/sters. Daca ignoram FOR EACH ROW,
+		triggerul va fi default 'statement-trigger', adica se executa
+		odata fara a tine cont de numarul de linii afectate de eveniment
+	6. [Optional FOLLOWS | PRECEDES alt_trigger] specificam daca 
+		triggerul curent se va executa inaintea sau dupa triggerul numit 
+		'alt_trigger'. Obligatoriu daca avem mai multe triggere de acelasi
+		tip pe aceeasi comanda
+	7.[Optional ENABLE / DISABLE] specificam daca triggerul sa fie activ sau inactiv
+		dupa compilare. Daca nu se specifica, triggerul este by default ENABLE.
+	8.[Optional declare] pt variabile
+	9.[Optional Exceptions] pt exceptii
+4. Demo trigger logging
+	1. Aici ne-am folosit de ajutorul keyword-ului :new. Pentru a-l folosi, 
+		triggerul trebuie neaparat sa fie de tip [FOR EACH ROW] pentru a 
+		putea face referire la valorile introduse. Daca faceam un trigger pe 
+		operatia de delete, in loc de :new se punea :old care face referire
+		la valorile 'vechi' sau 'pierdute'. Valorile :new pot fi modificate 
+		daca trigger ul este de tip before.
+
+5. Demo trigger pentru tabelele hoodies si watches
+
+Sper ca ati inteles exemplele pe care le-am prezentat
+	si in caz ca aveti intrebari, mi le puteti adresa oricand
+	si voi incerca sa va ajut cat de mult pot.
+
+	Okay, hai sa avansam la o eroare pe care s-ar putea sa o intalniti
+6. Mutating table
+	1.Erorile de tip mutating table ORA-04091 au loc atunci cand
+	un trigger de tip FOR EACH ROW incearca sa examineze/modifice
+	tabela care este IN CURS de modificare.
+	Spre exemplu, sa zicem ca vreau sa fac o operatie DML asupra unui tabel, nu
+	conteaza operatia, sa zicem ca fac un delete pe tabel. Dar eu deja am un
+	trigger pe delete pe tabel care imi realizeaza niste statistici.
+	Problema mutating table apare deoarece, in timp ce tabelul se modifica(ca eu vreau
+	sa sterg niste informatii din el), in acelasi timp incerc sa EXTRAG alte informatii
+	dar nu imi este garantat faptul ca acele informatii extrase sunt corecte 
+	la sfarsitul tranzactiei.
+7. Demo mutating table error
+	Sa zicem ca in tabelul note am 50 note de 10; notele cu id 500 si 501
+	sunt note de 10. dupa ce am sters nota 500, am 49 de 10, iar
+	dupa ce am sters nota 501, am 48 de 10, deci ar fi inconsistent sa 
+	generez statistici in acest trigger.
+8. Cum se creeaza un compound trigger?
+	[Demo pe cod note_delete_good]
+	1. Ordinea de executie a comenzilor este before statement,
+	before each row, after each row, after statement.
+	Dupa cum vedeti, am salvat notele modificate(in cazul nostru sterse)
+	in tabela note_save, astfel putand sa le modificam dupa placul nostru
+	si la final sa le inseram inapoi in tabela note.
+9. Triggere INSTEAD OF
+	Un Trigger instead of este definit pe un view, iar codul pe care il executa
+	consta in operatii DML. In loc sa executam comanda DML, baza de date
+	Oracle va executa triggerul INSTEAD OF asociat acelei comenzi.
